@@ -1,17 +1,18 @@
-import { useState } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { StatsCards } from "@/components/StatsCards";
 import { TripsTable } from "@/components/TripsTable";
 import { NewOperationDialog } from "@/components/NewOperationDialog";
-import { mockTrips } from "@/data/mockTrips";
+import { useTrips, useAddTrip } from "@/hooks/useTrips";
 import { TransportOperation } from "@/types/transport";
+import { Loader2 } from "lucide-react";
 
 const Index = () => {
-  const [trips, setTrips] = useState<TransportOperation[]>(mockTrips);
+  const { data: trips = [], isLoading } = useTrips();
+  const addTrip = useAddTrip();
 
   const handleAddTrip = (newTrip: TransportOperation) => {
-    setTrips((prev) => [newTrip, ...prev]);
+    addTrip.mutate(newTrip);
   };
 
   return (
@@ -29,8 +30,16 @@ const Index = () => {
             <NewOperationDialog onAdd={handleAddTrip} tripCount={trips.length} />
           </header>
           <main className="flex-1 p-6 overflow-y-auto space-y-6">
-            <StatsCards trips={trips} />
-            <TripsTable trips={trips} />
+            {isLoading ? (
+              <div className="flex items-center justify-center py-20">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : (
+              <>
+                <StatsCards trips={trips} />
+                <TripsTable trips={trips} />
+              </>
+            )}
           </main>
         </div>
       </div>
