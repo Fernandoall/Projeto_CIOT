@@ -2,34 +2,36 @@ import { useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { TransportOperation } from "@/types/transport";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
+import { useMotoristas, useVeiculos, useAddViagem } from "@/hooks/useTransport";
 
 interface NewOperationDialogProps {
-  onAdd: (op: TransportOperation) => void;
   tripCount: number;
 }
 
-export function NewOperationDialog({ onAdd, tripCount }: NewOperationDialogProps) {
+export function NewOperationDialog({ tripCount }: NewOperationDialogProps) {
   const [open, setOpen] = useState(false);
-  const [motorista, setMotorista] = useState("");
-  const [placa, setPlaca] = useState("");
+  const [motoristaId, setMotoristaId] = useState("");
+  const [veiculoId, setVeiculoId] = useState("");
   const [origem, setOrigem] = useState("");
   const [destino, setDestino] = useState("");
   const [frete, setFrete] = useState("");
   const [pedagio, setPedagio] = useState("");
 
+  const { data: motoristas = [] } = useMotoristas();
+  const { data: veiculos = [] } = useVeiculos();
+  const addViagem = useAddViagem();
+
   const resetForm = () => {
-    setMotorista("");
-    setPlaca("");
+    setMotoristaId("");
+    setVeiculoId("");
     setOrigem("");
     setDestino("");
     setFrete("");
@@ -38,145 +40,97 @@ export function NewOperationDialog({ onAdd, tripCount }: NewOperationDialogProps
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!motorista.trim() || !placa.trim() || !frete.trim()) {
-      toast.error("Preencha os campos obrigatórios: Motorista, Placa e Frete.");
+    if (!motoristaId || !veiculoId || !frete.trim()) {
+      toast.error("Preencha motorista, veículo e valor do frete.");
       return;
     }
 
-    const newOp: TransportOperation = {
-      id: `OP-${String(tripCount + 1).padStart(3, "0")}`,
-      motorista: motorista.trim(),
-      placa: placa.trim().toUpperCase(),
-      origem: origem.trim(),
-      destino: destino.trim(),
-      status: "agendada",
-      frete: parseFloat(frete) || 0,
-      pedagio: parseFloat(pedagio) || 0,
-      dataCriacao: new Date().toISOString().split("T")[0],
-    };
-
-    onAdd(newOp);
-    toast.success(`Operação ${newOp.id} cadastrada com sucesso!`);
-    resetForm();
-    setOpen(false);
+    const codigo = `VG-${String(tripCount + 1).padStart(3, "0")}`;
+    addViagem.mutate(
+      {
+        codigo,
+        motorista_id: motoristaId,
+        veiculo_id: veiculoId,
+        origem: origem.trim(),
+        destino: destino.trim(),
+        frete: parseFloat(frete) || 0,
+        pedagio: parseFloat(pedagio) || 0,
+      },
+      {
+        onSuccess: () => {
+          toast.success(`Viagem ${codigo} cadastrada!`);
+          resetForm();
+          setOpen(false);
+        },
+        onError: (err) => toast.error(`Erro: ${err.message}`),
+      }
+    );
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold">
-          <Plus className="mr-2 h-4 w-4" />
-          Nova Operação
+          <Plus className="mr-1 h-4 w-4" />
+          <span className="hidden sm:inline">Nova Operação</span>
+          <span className="sm:hidden">Nova</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="bg-card border-border sm:max-w-[480px]">
+      <DialogContent className="bg-card border-border sm:max-w-[480px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-primary text-xl">
-            Nova Operação de Transporte
-          </DialogTitle>
+          <DialogTitle className="text-primary text-xl">Nova Operação de Transporte</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           <div className="space-y-2">
-            <Label htmlFor="motorista" className="text-secondary-foreground">
-              Motorista *
-            </Label>
-            <Input
-              id="motorista"
-              value={motorista}
-              onChange={(e) => setMotorista(e.target.value)}
-              placeholder="Nome do motorista"
-              className="bg-secondary border-border text-foreground placeholder:text-muted-foreground"
-              maxLength={100}
-            />
+            <Label className="text-secondary-foreground">Motorista *</Label>
+            <Select value={motoristaId} onValueChange={setMotoristaId}>
+              <SelectTrigger className="bg-secondary border-border text-foreground">
+                <SelectValue placeholder="Selecione o motorista" />
+              </SelectTrigger>
+              <SelectContent className="bg-card border-border">
+                {motoristas.map((m) => (
+                  <SelectItem key={m.id} value={m.id}>{m.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="placa" className="text-secondary-foreground">
-              Placa do Caminhão *
-            </Label>
-            <Input
-              id="placa"
-              value={placa}
-              onChange={(e) => setPlaca(e.target.value)}
-              placeholder="ABC-1D23"
-              className="bg-secondary border-border text-foreground placeholder:text-muted-foreground font-mono"
-              maxLength={8}
-            />
+            <Label className="text-secondary-foreground">Veículo *</Label>
+            <Select value={veiculoId} onValueChange={setVeiculoId}>
+              <SelectTrigger className="bg-secondary border-border text-foreground">
+                <SelectValue placeholder="Selecione o veículo" />
+              </SelectTrigger>
+              <SelectContent className="bg-card border-border">
+                {veiculos.map((v) => (
+                  <SelectItem key={v.id} value={v.id}>{v.placa} — {v.modelo}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="origem" className="text-secondary-foreground">
-                Origem
-              </Label>
-              <Input
-                id="origem"
-                value={origem}
-                onChange={(e) => setOrigem(e.target.value)}
-                placeholder="Cidade, UF"
-                className="bg-secondary border-border text-foreground placeholder:text-muted-foreground"
-                maxLength={100}
-              />
+              <Label className="text-secondary-foreground">Origem</Label>
+              <Input value={origem} onChange={(e) => setOrigem(e.target.value)} placeholder="Cidade, UF" className="bg-secondary border-border text-foreground placeholder:text-muted-foreground" maxLength={100} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="destino" className="text-secondary-foreground">
-                Destino
-              </Label>
-              <Input
-                id="destino"
-                value={destino}
-                onChange={(e) => setDestino(e.target.value)}
-                placeholder="Cidade, UF"
-                className="bg-secondary border-border text-foreground placeholder:text-muted-foreground"
-                maxLength={100}
-              />
+              <Label className="text-secondary-foreground">Destino</Label>
+              <Input value={destino} onChange={(e) => setDestino(e.target.value)} placeholder="Cidade, UF" className="bg-secondary border-border text-foreground placeholder:text-muted-foreground" maxLength={100} />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="frete" className="text-secondary-foreground">
-                Valor do Frete (R$) *
-              </Label>
-              <Input
-                id="frete"
-                type="number"
-                min="0"
-                step="0.01"
-                value={frete}
-                onChange={(e) => setFrete(e.target.value)}
-                placeholder="0,00"
-                className="bg-secondary border-border text-foreground placeholder:text-muted-foreground tabular-nums"
-              />
+              <Label className="text-secondary-foreground">Frete (R$) *</Label>
+              <Input type="number" min="0" step="0.01" value={frete} onChange={(e) => setFrete(e.target.value)} placeholder="0,00" className="bg-secondary border-border text-foreground placeholder:text-muted-foreground tabular-nums" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="pedagio" className="text-secondary-foreground">
-                Valor do Pedágio (R$)
-              </Label>
-              <Input
-                id="pedagio"
-                type="number"
-                min="0"
-                step="0.01"
-                value={pedagio}
-                onChange={(e) => setPedagio(e.target.value)}
-                placeholder="0,00"
-                className="bg-secondary border-border text-foreground placeholder:text-muted-foreground tabular-nums"
-              />
+              <Label className="text-secondary-foreground">Pedágio (R$)</Label>
+              <Input type="number" min="0" step="0.01" value={pedagio} onChange={(e) => setPedagio(e.target.value)} placeholder="0,00" className="bg-secondary border-border text-foreground placeholder:text-muted-foreground tabular-nums" />
             </div>
           </div>
           <div className="flex justify-end gap-3 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-              className="border-border text-muted-foreground hover:bg-muted"
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold"
-            >
-              Cadastrar Operação
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} className="border-border text-muted-foreground hover:bg-muted">Cancelar</Button>
+            <Button type="submit" disabled={addViagem.isPending} className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold">
+              {addViagem.isPending ? "Salvando..." : "Cadastrar"}
             </Button>
           </div>
         </form>
