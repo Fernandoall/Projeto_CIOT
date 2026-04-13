@@ -14,7 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      transport_operations: {
+        Row: {
+          created_at: string
+          destino: string | null
+          frete: number
+          id: string
+          motorista: string
+          operation_code: string
+          origem: string | null
+          pedagio: number
+          placa: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          destino?: string | null
+          frete?: number
+          id?: string
+          motorista: string
+          operation_code: string
+          origem?: string | null
+          pedagio?: number
+          placa: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          destino?: string | null
+          frete?: number
+          id?: string
+          motorista?: string
+          operation_code?: string
+          origem?: string | null
+          pedagio?: number
+          placa?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
