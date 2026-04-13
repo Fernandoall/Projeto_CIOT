@@ -14,47 +14,149 @@ export type Database = {
   }
   public: {
     Tables: {
-      transport_operations: {
+      motoristas: {
         Row: {
+          ativo: boolean
+          cnh: string
+          cpf: string
           created_at: string
-          destino: string | null
-          frete: number
+          email: string | null
           id: string
-          motorista: string
-          operation_code: string
-          origem: string | null
-          pedagio: number
-          placa: string
-          status: string
+          nome: string
+          telefone: string | null
           updated_at: string
         }
         Insert: {
+          ativo?: boolean
+          cnh: string
+          cpf: string
           created_at?: string
-          destino?: string | null
-          frete?: number
+          email?: string | null
           id?: string
-          motorista: string
-          operation_code: string
-          origem?: string | null
-          pedagio?: number
-          placa: string
-          status?: string
+          nome: string
+          telefone?: string | null
           updated_at?: string
         }
         Update: {
+          ativo?: boolean
+          cnh?: string
+          cpf?: string
           created_at?: string
-          destino?: string | null
-          frete?: number
+          email?: string | null
           id?: string
-          motorista?: string
-          operation_code?: string
-          origem?: string | null
-          pedagio?: number
-          placa?: string
-          status?: string
+          nome?: string
+          telefone?: string | null
           updated_at?: string
         }
         Relationships: []
+      }
+      veiculos: {
+        Row: {
+          ano: number | null
+          ativo: boolean
+          capacidade_kg: number | null
+          created_at: string
+          id: string
+          marca: string
+          modelo: string
+          placa: string
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          ano?: number | null
+          ativo?: boolean
+          capacidade_kg?: number | null
+          created_at?: string
+          id?: string
+          marca: string
+          modelo: string
+          placa: string
+          tipo?: string
+          updated_at?: string
+        }
+        Update: {
+          ano?: number | null
+          ativo?: boolean
+          capacidade_kg?: number | null
+          created_at?: string
+          id?: string
+          marca?: string
+          modelo?: string
+          placa?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      viagens: {
+        Row: {
+          ciot_protocolo: string | null
+          ciot_status: string
+          codigo: string
+          created_at: string
+          data_chegada: string | null
+          data_saida: string | null
+          destino: string | null
+          frete: number
+          id: string
+          motorista_id: string | null
+          origem: string | null
+          pedagio: number
+          status: string
+          updated_at: string
+          veiculo_id: string | null
+        }
+        Insert: {
+          ciot_protocolo?: string | null
+          ciot_status?: string
+          codigo: string
+          created_at?: string
+          data_chegada?: string | null
+          data_saida?: string | null
+          destino?: string | null
+          frete?: number
+          id?: string
+          motorista_id?: string | null
+          origem?: string | null
+          pedagio?: number
+          status?: string
+          updated_at?: string
+          veiculo_id?: string | null
+        }
+        Update: {
+          ciot_protocolo?: string | null
+          ciot_status?: string
+          codigo?: string
+          created_at?: string
+          data_chegada?: string | null
+          data_saida?: string | null
+          destino?: string | null
+          frete?: number
+          id?: string
+          motorista_id?: string | null
+          origem?: string | null
+          pedagio?: number
+          status?: string
+          updated_at?: string
+          veiculo_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "viagens_motorista_id_fkey"
+            columns: ["motorista_id"]
+            isOneToOne: false
+            referencedRelation: "motoristas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "viagens_veiculo_id_fkey"
+            columns: ["veiculo_id"]
+            isOneToOne: false
+            referencedRelation: "veiculos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
