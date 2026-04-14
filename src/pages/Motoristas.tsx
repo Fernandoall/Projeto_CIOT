@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import { useMotoristas, useAddMotorista } from "@/hooks/useTransport";
+import { useMotoristas, useAddMotorista, useDeleteMotorista } from "@/hooks/useTransport";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,13 +11,20 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Plus, Loader2 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Plus, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 const Motoristas = () => {
   const { data: motoristas = [], isLoading } = useMotoristas();
   const addMotorista = useAddMotorista();
+  const deleteMotorista = useDeleteMotorista();
+  
   const [open, setOpen] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
   const [nome, setNome] = useState("");
   const [cpf, setCpf] = useState("");
   const [cnh, setCnh] = useState("");
@@ -37,6 +44,12 @@ const Motoristas = () => {
         onError: (err) => toast.error(`Erro: ${err.message}`),
       }
     );
+  };
+
+  const handleConfirmDelete = () => {
+    if (!confirmDeleteId) return;
+    deleteMotorista.mutate(confirmDeleteId);
+    setConfirmDeleteId(null);
   };
 
   return (
@@ -84,7 +97,16 @@ const Motoristas = () => {
                 <div className="md:hidden space-y-3">
                   {motoristas.map((m) => (
                     <div key={m.id} className="rounded-lg border border-border bg-secondary/30 p-4 space-y-1">
-                      <div className="font-medium text-foreground">{m.nome}</div>
+                      <div className="flex items-center justify-between">
+                        <div className="font-medium text-foreground">{m.nome}</div>
+                        <button
+                          onClick={() => setConfirmDeleteId(m.id)}
+                          className="text-destructive hover:text-destructive/80 transition-colors"
+                          aria-label="Excluir motorista"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                       <div className="text-sm text-muted-foreground">CPF: {m.cpf}</div>
                       <div className="text-sm text-muted-foreground">CNH: {m.cnh}</div>
                       {m.telefone && <div className="text-sm text-muted-foreground">{m.telefone}</div>}
@@ -102,6 +124,7 @@ const Motoristas = () => {
                         <TableHead className="text-muted-foreground">Telefone</TableHead>
                         <TableHead className="text-muted-foreground">Email</TableHead>
                         <TableHead className="text-muted-foreground">Status</TableHead>
+                        <TableHead className="text-muted-foreground text-center">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -117,6 +140,17 @@ const Motoristas = () => {
                               {m.ativo ? "Ativo" : "Inativo"}
                             </span>
                           </TableCell>
+                          <TableCell className="text-center">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-destructive hover:text-destructive/80 hover:bg-destructive/10"
+                              onClick={() => setConfirmDeleteId(m.id)}
+                              aria-label="Excluir motorista"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -127,6 +161,24 @@ const Motoristas = () => {
           </main>
         </div>
       </div>
+
+      {/* Dialog de confirmação de exclusão */}
+      <AlertDialog open={!!confirmDeleteId} onOpenChange={(open) => { if (!open) setConfirmDeleteId(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir motorista?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. O motorista será removido permanentemente do banco de dados.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </SidebarProvider>
   );
 };

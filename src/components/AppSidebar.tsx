@@ -22,7 +22,7 @@ export function AppSidebar() {
       <SidebarContent>
         <div className="px-4 md:px-6 py-4 md:py-6">
           <h1 className="text-lg md:text-xl font-bold text-primary">
-            {collapsed ? "FL" : "FreteFlow"}
+            {collapsed ? "FL" : "Frete Calculado"}
           </h1>
         </div>
         <SidebarGroup>

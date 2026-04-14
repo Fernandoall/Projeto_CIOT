@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import { useVeiculos, useAddVeiculo } from "@/hooks/useTransport";
+import { useVeiculos, useAddVeiculo, useDeleteVeiculo } from "@/hooks/useTransport";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,7 +14,10 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Plus, Loader2 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Plus, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 const tipoLabels: Record<string, string> = {
@@ -28,7 +31,11 @@ const tipoLabels: Record<string, string> = {
 const Veiculos = () => {
   const { data: veiculos = [], isLoading } = useVeiculos();
   const addVeiculo = useAddVeiculo();
+  const deleteVeiculo = useDeleteVeiculo();
+
   const [open, setOpen] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
   const [placa, setPlaca] = useState("");
   const [modelo, setModelo] = useState("");
   const [marca, setMarca] = useState("");
@@ -56,6 +63,12 @@ const Veiculos = () => {
         onError: (err) => toast.error(`Erro: ${err.message}`),
       }
     );
+  };
+
+  const handleConfirmDelete = () => {
+    if (!confirmDeleteId) return;
+    deleteVeiculo.mutate(confirmDeleteId);
+    setConfirmDeleteId(null);
   };
 
   return (
@@ -114,8 +127,17 @@ const Veiculos = () => {
                   {veiculos.map((v) => (
                     <div key={v.id} className="rounded-lg border border-border bg-secondary/30 p-4 space-y-1">
                       <div className="flex items-center justify-between">
-                        <span className="font-medium text-foreground font-mono">{v.placa}</span>
-                        <span className="text-xs text-muted-foreground">{tipoLabels[v.tipo] ?? v.tipo}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-foreground font-mono">{v.placa}</span>
+                          <span className="text-xs text-muted-foreground">{tipoLabels[v.tipo] ?? v.tipo}</span>
+                        </div>
+                        <button
+                          onClick={() => setConfirmDeleteId(v.id)}
+                          className="text-destructive hover:text-destructive/80 transition-colors"
+                          aria-label="Excluir veículo"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
                       </div>
                       <div className="text-sm text-secondary-foreground">{v.marca} {v.modelo} {v.ano ? `(${v.ano})` : ""}</div>
                       {v.capacidade_kg && <div className="text-sm text-muted-foreground">{Number(v.capacidade_kg).toLocaleString("pt-BR")} kg</div>}
@@ -133,6 +155,7 @@ const Veiculos = () => {
                         <TableHead className="text-muted-foreground">Tipo</TableHead>
                         <TableHead className="text-muted-foreground text-right">Capacidade (kg)</TableHead>
                         <TableHead className="text-muted-foreground">Status</TableHead>
+                        <TableHead className="text-muted-foreground text-center">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -149,6 +172,17 @@ const Veiculos = () => {
                               {v.ativo ? "Ativo" : "Inativo"}
                             </span>
                           </TableCell>
+                          <TableCell className="text-center">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-destructive hover:text-destructive/80 hover:bg-destructive/10"
+                              onClick={() => setConfirmDeleteId(v.id)}
+                              aria-label="Excluir veículo"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -159,6 +193,24 @@ const Veiculos = () => {
           </main>
         </div>
       </div>
+
+      {/* Dialog de confirmação de exclusão */}
+      <AlertDialog open={!!confirmDeleteId} onOpenChange={(open) => { if (!open) setConfirmDeleteId(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir veículo?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. O veículo será removido permanentemente do banco de dados.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </SidebarProvider>
   );
 };
