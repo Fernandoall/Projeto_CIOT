@@ -25,6 +25,12 @@ export type Database = {
           nome: string
           telefone: string | null
           updated_at: string
+          // NOVOS CAMPOS
+          rntrc: string | null
+          banco: string | null
+          agencia: string | null
+          conta: string | null
+          tipo_conta: string | null
         }
         Insert: {
           ativo?: boolean
@@ -36,6 +42,12 @@ export type Database = {
           nome: string
           telefone?: string | null
           updated_at?: string
+          // NOVOS CAMPOS
+          rntrc?: string | null
+          banco?: string | null
+          agencia?: string | null
+          conta?: string | null
+          tipo_conta?: string | null
         }
         Update: {
           ativo?: boolean
@@ -47,6 +59,12 @@ export type Database = {
           nome?: string
           telefone?: string | null
           updated_at?: string
+          // NOVOS CAMPOS
+          rntrc?: string | null
+          banco?: string | null
+          agencia?: string | null
+          conta?: string | null
+          tipo_conta?: string | null
         }
         Relationships: []
       }
@@ -62,6 +80,7 @@ export type Database = {
           placa: string
           tipo: string
           updated_at: string
+          tag_pedagio: string | null // NOVO CAMPO
         }
         Insert: {
           ano?: number | null
@@ -74,6 +93,7 @@ export type Database = {
           placa: string
           tipo?: string
           updated_at?: string
+          tag_pedagio?: string | null // NOVO CAMPO
         }
         Update: {
           ano?: number | null
@@ -86,6 +106,7 @@ export type Database = {
           placa?: string
           tipo?: string
           updated_at?: string
+          tag_pedagio?: string | null // NOVO CAMPO
         }
         Relationships: []
       }
@@ -106,6 +127,11 @@ export type Database = {
           status: string
           updated_at: string
           veiculo_id: string | null
+          // NOVOS CAMPOS
+          contratante_documento: string | null
+          destinatario_documento: string | null
+          ibge_origem: string | null
+          ibge_destino: string | null
         }
         Insert: {
           ciot_protocolo?: string | null
@@ -123,8 +149,14 @@ export type Database = {
           status?: string
           updated_at?: string
           veiculo_id?: string | null
+          // NOVOS CAMPOS
+          contratante_documento?: string | null
+          destinatario_documento?: string | null
+          ibge_origem?: string | null
+          ibge_destino?: string | null
         }
         Update: {
+          // ... (mesma estrutura do Insert)
           ciot_protocolo?: string | null
           ciot_status?: string
           codigo?: string
@@ -140,6 +172,11 @@ export type Database = {
           status?: string
           updated_at?: string
           veiculo_id?: string | null
+          // NOVOS CAMPOS
+          contratante_documento?: string | null
+          destinatario_documento?: string | null
+          ibge_origem?: string | null
+          ibge_destino?: string | null
         }
         Relationships: [
           {

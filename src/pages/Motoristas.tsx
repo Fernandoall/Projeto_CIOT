@@ -5,15 +5,9 @@ import { useMotoristas, useAddMotorista, useDeleteMotorista } from "@/hooks/useT
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/components/ui/table";
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Plus, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -30,6 +24,17 @@ const Motoristas = () => {
   const [cnh, setCnh] = useState("");
   const [telefone, setTelefone] = useState("");
   const [email, setEmail] = useState("");
+  // Novos Estados
+  const [rntrc, setRntrc] = useState("");
+  const [banco, setBanco] = useState("");
+  const [agencia, setAgencia] = useState("");
+  const [conta, setConta] = useState("");
+  const [tipoConta, setTipoConta] = useState("");
+
+  const resetForm = () => {
+    setNome(""); setCpf(""); setCnh(""); setTelefone(""); setEmail("");
+    setRntrc(""); setBanco(""); setAgencia(""); setConta(""); setTipoConta("");
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,9 +43,18 @@ const Motoristas = () => {
       return;
     }
     addMotorista.mutate(
-      { nome: nome.trim(), cpf: cpf.trim(), cnh: cnh.trim(), telefone: telefone.trim() || undefined, email: email.trim() || undefined },
+      { 
+        nome: nome.trim(), cpf: cpf.trim(), cnh: cnh.trim(), 
+        telefone: telefone.trim() || undefined, 
+        email: email.trim() || undefined,
+        rntrc: rntrc.trim() || undefined,
+        banco: banco.trim() || undefined,
+        agencia: agencia.trim() || undefined,
+        conta: conta.trim() || undefined,
+        tipo_conta: tipoConta.trim() || undefined
+      },
       {
-        onSuccess: () => { toast.success("Motorista cadastrado!"); setOpen(false); setNome(""); setCpf(""); setCnh(""); setTelefone(""); setEmail(""); },
+        onSuccess: () => { toast.success("Motorista cadastrado!"); setOpen(false); resetForm(); },
         onError: (err) => toast.error(`Erro: ${err.message}`),
       }
     );
@@ -68,18 +82,36 @@ const Motoristas = () => {
                   <Plus className="mr-1 h-4 w-4" /><span className="hidden sm:inline">Novo Motorista</span><span className="sm:hidden">Novo</span>
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-card border-border sm:max-w-[420px]">
+              <DialogContent className="bg-card border-border sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader><DialogTitle className="text-primary">Novo Motorista</DialogTitle></DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-                  <div className="space-y-2"><Label className="text-secondary-foreground">Nome *</Label><Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Nome completo" className="bg-secondary border-border text-foreground" maxLength={100} /></div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2"><Label className="text-secondary-foreground">CPF *</Label><Input value={cpf} onChange={(e) => setCpf(e.target.value)} placeholder="000.000.000-00" className="bg-secondary border-border text-foreground" maxLength={14} /></div>
-                    <div className="space-y-2"><Label className="text-secondary-foreground">CNH *</Label><Input value={cnh} onChange={(e) => setCnh(e.target.value)} placeholder="00000000000" className="bg-secondary border-border text-foreground" maxLength={11} /></div>
+                <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+                  
+                  {/* Dados Pessoais */}
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-semibold text-muted-foreground border-b pb-1">Dados Pessoais</h3>
+                    <div className="space-y-2"><Label className="text-secondary-foreground">Nome *</Label><Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Nome completo" className="bg-secondary border-border" /></div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2"><Label className="text-secondary-foreground">CPF *</Label><Input value={cpf} onChange={(e) => setCpf(e.target.value)} placeholder="000.000.000-00" className="bg-secondary border-border" /></div>
+                      <div className="space-y-2"><Label className="text-secondary-foreground">CNH *</Label><Input value={cnh} onChange={(e) => setCnh(e.target.value)} placeholder="00000000000" className="bg-secondary border-border" /></div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2"><Label className="text-secondary-foreground">Telefone</Label><Input value={telefone} onChange={(e) => setTelefone(e.target.value)} placeholder="(00) 00000-0000" className="bg-secondary border-border" /></div>
+                      <div className="space-y-2"><Label className="text-secondary-foreground">Email</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@exemplo.com" className="bg-secondary border-border" /></div>
+                    </div>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2"><Label className="text-secondary-foreground">Telefone</Label><Input value={telefone} onChange={(e) => setTelefone(e.target.value)} placeholder="(00) 00000-0000" className="bg-secondary border-border text-foreground" maxLength={15} /></div>
-                    <div className="space-y-2"><Label className="text-secondary-foreground">Email</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@exemplo.com" className="bg-secondary border-border text-foreground" maxLength={100} /></div>
+
+                  {/* Regulatório e Bancário */}
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-semibold text-muted-foreground border-b pb-1">CIOT / Repasse de Frete</h3>
+                    <div className="space-y-2"><Label className="text-secondary-foreground">RNTRC</Label><Input value={rntrc} onChange={(e) => setRntrc(e.target.value)} placeholder="Ex: 123456789" className="bg-secondary border-border" /></div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                      <div className="space-y-2 col-span-2"><Label className="text-secondary-foreground">Banco</Label><Input value={banco} onChange={(e) => setBanco(e.target.value)} placeholder="Ex: 341 (Itaú)" className="bg-secondary border-border" /></div>
+                      <div className="space-y-2 col-span-2"><Label className="text-secondary-foreground">Agência</Label><Input value={agencia} onChange={(e) => setAgencia(e.target.value)} placeholder="0000" className="bg-secondary border-border" /></div>
+                      <div className="space-y-2 col-span-2"><Label className="text-secondary-foreground">Conta</Label><Input value={conta} onChange={(e) => setConta(e.target.value)} placeholder="00000-0" className="bg-secondary border-border" /></div>
+                      <div className="space-y-2 col-span-2"><Label className="text-secondary-foreground">Tipo</Label><Input value={tipoConta} onChange={(e) => setTipoConta(e.target.value)} placeholder="Corrente/Poupança" className="bg-secondary border-border" /></div>
+                    </div>
                   </div>
+
                   <div className="flex justify-end gap-3 pt-4">
                     <Button type="button" variant="outline" onClick={() => setOpen(false)} className="border-border text-muted-foreground hover:bg-muted">Cancelar</Button>
                     <Button type="submit" disabled={addMotorista.isPending} className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold">{addMotorista.isPending ? "Salvando..." : "Cadastrar"}</Button>
@@ -88,41 +120,31 @@ const Motoristas = () => {
               </DialogContent>
             </Dialog>
           </header>
+          
           <main className="flex-1 p-4 md:p-6 overflow-y-auto">
             {isLoading ? (
               <div className="flex items-center justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
             ) : (
               <div className="rounded-lg border border-border bg-card p-4 md:p-6">
-                {/* Mobile cards */}
                 <div className="md:hidden space-y-3">
                   {motoristas.map((m) => (
                     <div key={m.id} className="rounded-lg border border-border bg-secondary/30 p-4 space-y-1">
                       <div className="flex items-center justify-between">
                         <div className="font-medium text-foreground">{m.nome}</div>
-                        <button
-                          onClick={() => setConfirmDeleteId(m.id)}
-                          className="text-destructive hover:text-destructive/80 transition-colors"
-                          aria-label="Excluir motorista"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                        <button onClick={() => setConfirmDeleteId(m.id)} className="text-destructive hover:text-destructive/80"><Trash2 className="h-4 w-4" /></button>
                       </div>
-                      <div className="text-sm text-muted-foreground">CPF: {m.cpf}</div>
-                      <div className="text-sm text-muted-foreground">CNH: {m.cnh}</div>
-                      {m.telefone && <div className="text-sm text-muted-foreground">{m.telefone}</div>}
+                      <div className="text-sm text-muted-foreground">CPF: {m.cpf} | RNTRC: {m.rntrc || "—"}</div>
                     </div>
                   ))}
                 </div>
-                {/* Desktop table */}
                 <div className="hidden md:block overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow className="border-border">
                         <TableHead className="text-muted-foreground">Nome</TableHead>
                         <TableHead className="text-muted-foreground">CPF</TableHead>
-                        <TableHead className="text-muted-foreground">CNH</TableHead>
-                        <TableHead className="text-muted-foreground">Telefone</TableHead>
-                        <TableHead className="text-muted-foreground">Email</TableHead>
+                        <TableHead className="text-muted-foreground">RNTRC</TableHead>
+                        <TableHead className="text-muted-foreground">Banco</TableHead>
                         <TableHead className="text-muted-foreground">Status</TableHead>
                         <TableHead className="text-muted-foreground text-center">Ações</TableHead>
                       </TableRow>
@@ -132,24 +154,13 @@ const Motoristas = () => {
                         <TableRow key={m.id} className="border-border hover:bg-muted/30">
                           <TableCell className="font-medium text-foreground">{m.nome}</TableCell>
                           <TableCell className="text-secondary-foreground font-mono">{m.cpf}</TableCell>
-                          <TableCell className="text-secondary-foreground font-mono">{m.cnh}</TableCell>
-                          <TableCell className="text-secondary-foreground">{m.telefone ?? "—"}</TableCell>
-                          <TableCell className="text-secondary-foreground">{m.email ?? "—"}</TableCell>
+                          <TableCell className="text-secondary-foreground font-mono">{m.rntrc || "—"}</TableCell>
+                          <TableCell className="text-secondary-foreground font-mono">{m.banco ? `${m.banco} (Ag: ${m.agencia})` : "—"}</TableCell>
                           <TableCell>
-                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${m.ativo ? "bg-success/20 text-success" : "bg-muted text-muted-foreground"}`}>
-                              {m.ativo ? "Ativo" : "Inativo"}
-                            </span>
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${m.ativo ? "bg-success/20 text-success" : "bg-muted text-muted-foreground"}`}>{m.ativo ? "Ativo" : "Inativo"}</span>
                           </TableCell>
                           <TableCell className="text-center">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-destructive hover:text-destructive/80 hover:bg-destructive/10"
-                              onClick={() => setConfirmDeleteId(m.id)}
-                              aria-label="Excluir motorista"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive/80 hover:bg-destructive/10" onClick={() => setConfirmDeleteId(m.id)}><Trash2 className="h-4 w-4" /></Button>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -162,20 +173,15 @@ const Motoristas = () => {
         </div>
       </div>
 
-      {/* Dialog de confirmação de exclusão */}
       <AlertDialog open={!!confirmDeleteId} onOpenChange={(open) => { if (!open) setConfirmDeleteId(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir motorista?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta ação não pode ser desfeita. O motorista será removido permanentemente do banco de dados.
-            </AlertDialogDescription>
+            <AlertDialogDescription>Esta ação não pode ser desfeita.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Excluir
-            </AlertDialogAction>
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Excluir</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

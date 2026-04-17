@@ -2,35 +2,14 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-// ---------------------------------------------------------------------------
-// UTILITÁRIO — Geração de protocolo simulado (formato realista de IPEF)
-// Quando a integração real com a IPEF for implementada, este bloco será
-// substituído pela chamada à Supabase Edge Function que faz o SOAP para a IPEF.
-// ---------------------------------------------------------------------------
 function gerarProtocoloSimulado(): string {
   const now = new Date();
   const ano = now.getFullYear();
   const mes = String(now.getMonth() + 1).padStart(2, "0");
   const dia = String(now.getDate()).padStart(2, "0");
-  const seq = Math.floor(Math.random() * 9000000 + 1000000); // 7 dígitos
+  const seq = Math.floor(Math.random() * 9000000 + 1000000); 
   return `${ano}${mes}${dia}${seq}`;
 }
-
-// ---------------------------------------------------------------------------
-// TODO (integração real): substituir gerarProtocoloSimulado() pela chamada abaixo
-//
-// const { data } = await supabase.functions.invoke("gerar-ciot", {
-//   body: {
-//     viagemId: id,
-//     motoristaCpf: ...,
-//     veiculoPlaca: ...,
-//     origem: ...,
-//     destino: ...,
-//     valorFrete: ...,
-//   },
-// });
-// const protocolo = data.numeroCiot;
-// ---------------------------------------------------------------------------
 
 // 1. BUSCAR VIAGENS
 export function useViagens() {
@@ -52,10 +31,7 @@ export function useUpdateViagemStatus() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const { error } = await supabase
-        .from("viagens")
-        .update({ status })
-        .eq("id", id);
+      const { error } = await supabase.from("viagens").update({ status }).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -74,18 +50,11 @@ export function useUpdateCiotProtocol() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id }: { id: string }) => {
-      // --- SIMULAÇÃO (remover quando Edge Function estiver pronta) ---
       const protocolo = gerarProtocoloSimulado();
-      // ---------------------------------------------------------------
-
       const { error } = await supabase
         .from("viagens")
-        .update({
-          ciot_protocolo: protocolo,
-          ciot_status: "emitido",
-        })
+        .update({ ciot_protocolo: protocolo, ciot_status: "emitido" })
         .eq("id", id);
-
       if (error) throw error;
       return protocolo;
     },
@@ -112,6 +81,11 @@ export function useAddViagem() {
       destino: string;
       frete: number;
       pedagio: number;
+      // NOVOS CAMPOS
+      contratante_documento?: string;
+      destinatario_documento?: string;
+      ibge_origem?: string;
+      ibge_destino?: string;
     }) => {
       const { error } = await supabase.from("viagens").insert(viagem);
       if (error) throw error;
@@ -132,10 +106,7 @@ export function useDeleteViagem() {
       qc.invalidateQueries({ queryKey: ["viagens"] });
       toast.success("Viagem excluída.");
     },
-    onError: (error: Error) => {
-      console.error("Erro ao deletar viagem:", error.message);
-      toast.error("Erro ao excluir viagem.");
-    },
+    onError: (error: Error) => toast.error("Erro ao excluir viagem."),
   });
 }
 
@@ -144,10 +115,7 @@ export function useMotoristas() {
   return useQuery({
     queryKey: ["motoristas"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("motoristas")
-        .select("*")
-        .order("nome");
+      const { data, error } = await supabase.from("motoristas").select("*").order("nome");
       if (error) throw error;
       return data ?? [];
     },
@@ -159,11 +127,9 @@ export function useAddMotorista() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (m: {
-      nome: string;
-      cpf: string;
-      cnh: string;
-      telefone?: string;
-      email?: string;
+      nome: string; cpf: string; cnh: string; telefone?: string; email?: string;
+      // NOVOS CAMPOS
+      rntrc?: string; banco?: string; agencia?: string; conta?: string; tipo_conta?: string;
     }) => {
       const { error } = await supabase.from("motoristas").insert(m);
       if (error) throw error;
@@ -184,10 +150,7 @@ export function useDeleteMotorista() {
       qc.invalidateQueries({ queryKey: ["motoristas"] });
       toast.success("Motorista excluído.");
     },
-    onError: (error: Error) => {
-      console.error("Erro ao deletar motorista:", error.message);
-      toast.error("Erro ao excluir motorista. Verifique se há viagens vinculadas.");
-    },
+    onError: (error: Error) => toast.error("Erro ao excluir motorista. Verifique viagens vinculadas."),
   });
 }
 
@@ -196,10 +159,7 @@ export function useVeiculos() {
   return useQuery({
     queryKey: ["veiculos"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("veiculos")
-        .select("*")
-        .order("placa");
+      const { data, error } = await supabase.from("veiculos").select("*").order("placa");
       if (error) throw error;
       return data ?? [];
     },
@@ -211,12 +171,8 @@ export function useAddVeiculo() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (v: {
-      placa: string;
-      modelo: string;
-      marca: string;
-      ano?: number;
-      tipo?: string;
-      capacidade_kg?: number;
+      placa: string; modelo: string; marca: string; ano?: number; tipo?: string; capacidade_kg?: number;
+      tag_pedagio?: string; // NOVO CAMPO
     }) => {
       const { error } = await supabase.from("veiculos").insert(v);
       if (error) throw error;
@@ -237,9 +193,6 @@ export function useDeleteVeiculo() {
       qc.invalidateQueries({ queryKey: ["veiculos"] });
       toast.success("Veículo excluído.");
     },
-    onError: (error: Error) => {
-      console.error("Erro ao deletar veículo:", error.message);
-      toast.error("Erro ao excluir veículo. Verifique se há viagens vinculadas.");
-    },
+    onError: (error: Error) => toast.error("Erro ao excluir veículo."),
   });
 }
